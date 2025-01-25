@@ -1,3 +1,4 @@
+import psutil
 from flask import Flask, request, send_from_directory, redirect, url_for, render_template_string
 import os
 
@@ -14,9 +15,30 @@ if not os.path.exists(UPLOAD_FOLDER):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# Hàm lấy thông tin server (CPU, bộ nhớ, ổ đĩa)
+def get_system_info():
+    # Lấy thông tin về CPU
+    cpu_percent = psutil.cpu_percent(interval=1)
+    # Lấy thông tin về bộ nhớ
+    memory = psutil.virtual_memory()
+    memory_percent = memory.percent
+    memory_available = memory.available / (1024 * 1024 * 1024)  # Đổi về GB
+    # Lấy thông tin về ổ đĩa
+    disk = psutil.disk_usage('/')
+    disk_percent = disk.percent
+    disk_free = disk.free / (1024 * 1024 * 1024)  # Đổi về GB
+
+    return {
+        'cpu_percent': cpu_percent,
+        'memory_percent': memory_percent,
+        'memory_available': memory_available,
+        'disk_percent': disk_percent,
+        'disk_free': disk_free
+    }
+
 @app.route('/')
 def index():
-    # Giao diện cho phép upload file, không yêu cầu mật khẩu ở trang chủ
+    system_info = get_system_info()  # Lấy thông tin hệ thống
     return render_template_string("""
         <h1>Upload và Nghe Nhạc</h1>
         <form action="/upload" method="POST" enctype="multipart/form-data">
@@ -24,19 +46,26 @@ def index():
             Chọn file nhạc: <input type="file" name="file" required><br><br>
             <input type="submit" value="Upload">
         </form>
+        
         <h2>Danh sách bài nhạc đã tải lên</h2>
         <ul>
         {% for filename in os.listdir('uploads') %}
             <li><a href="{{ url_for('uploaded_file', filename=filename) }}">{{ filename }}</a></li>
         {% endfor %}
         </ul>
-    """)
+
+        <h3>Thông tin Server</h3>
+        <ul>
+            <li>CPU: {{ system_info.cpu_percent }}% sử dụng</li>
+            <li>Bộ nhớ: {{ system_info.memory_percent }}% sử dụng (Còn {{ system_info.memory_available }} GB)</li>
+            <li>Ổ đĩa: {{ system_info.disk_percent }}% sử dụng (Còn {{ system_info.disk_free }} GB)</li>
+        </ul>
+    """, system_info=system_info)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    # Kiểm tra mật khẩu khi upload
     password = request.form.get('password')
-    if password != 'titeo123':
+    if password != 'your_password_here':
         return 'Mật khẩu sai!'
 
     if 'file' not in request.files:
@@ -54,7 +83,6 @@ def upload_file():
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    # Nếu file là nhạc, hiển thị trình phát nhạc
     if filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
         return render_template_string("""
             <h1>Nghe nhạc</h1>
@@ -64,7 +92,6 @@ def uploaded_file(filename):
             </audio>
         """, filename=filename)
     else:
-        # Nếu không phải file nhạc, tải xuống
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
