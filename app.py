@@ -65,7 +65,7 @@ def index():
 @app.route('/upload', methods=['POST'])
 def upload_file():
     password = request.form.get('password')
-    if password != 'your_password_here':
+    if password != 'titeo123':
         return 'Mật khẩu sai!'
 
     if 'file' not in request.files:
