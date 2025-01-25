@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'mp3', 'wav', 'ogg', 'flac'}
-PASSWORD = 'titeo 123'  # Đổi mật khẩu
+PASSWORD = 'titeo123'  # Đổi mật khẩu
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Đảm bảo thư mục uploads tồn tại
@@ -68,4 +68,4 @@ def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)
