@@ -39,6 +39,7 @@ def get_system_info():
 @app.route('/')
 def index():
     system_info = get_system_info()  # Lấy thông tin hệ thống
+    files = os.listdir('uploads')  # Lấy danh sách các file trong thư mục uploads
     return render_template_string("""
         <h1>Upload và Nghe Nhạc</h1>
         <form action="/upload" method="POST" enctype="multipart/form-data">
@@ -49,7 +50,7 @@ def index():
         
         <h2>Danh sách bài nhạc đã tải lên</h2>
         <ul>
-        {% for filename in os.listdir('uploads') %}
+        {% for filename in files %}
             <li><a href="{{ url_for('uploaded_file', filename=filename) }}">{{ filename }}</a></li>
         {% endfor %}
         </ul>
@@ -60,7 +61,7 @@ def index():
             <li>Bộ nhớ: {{ system_info.memory_percent }}% sử dụng (Còn {{ system_info.memory_available }} GB)</li>
             <li>Ổ đĩa: {{ system_info.disk_percent }}% sử dụng (Còn {{ system_info.disk_free }} GB)</li>
         </ul>
-    """, system_info=system_info)
+    """, system_info=system_info, files=files)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
