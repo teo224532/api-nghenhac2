@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload và Nghe Nhạc</title>
+    <script>
+        function uploadFile() {
+            const formData = new FormData(document.getElementById('uploadForm'));
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.onprogress = function (event) {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    document.getElementById('progressBar').value = percentComplete;
+                    document.getElementById('progressText').innerText = `Đã upload: ${percentComplete.toFixed(2)}%`;
+                }
+            };
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    const response = JSON.parse(xhr.responseText);
+                    alert(`Lỗi: ${response.message}`);
+                }
+            };
+
+            xhr.open('POST', '/upload');
+            xhr.send(formData);
+        }
+    </script>
+</head>
+<body>
+    <h1>Upload và Nghe Nhạc</h1>
+    <form id="uploadForm" onsubmit="event.preventDefault(); uploadFile();" enctype="multipart/form-data">
+        <label for="password">Mật khẩu:</label>
+        <input type="password" name="password" required><br><br>
+
+        <label for="file">Chọn file nhạc:</label>
+        <input type="file" name="file" required><br><br>
+
+        <input type="submit" value="Upload">
+    </form>
+
+    <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+    <p id="progressText">Đã upload: 0%</p>
+
+    <h2>Danh sách bài nhạc</h2>
+    <ul>
+        {% for file in files %}
+            <li>
+                <a href="{{ url_for('uploaded_file', filename=file) }}">{{ file }}</a> 
+                <audio controls>
+                    <source src="{{ url_for('uploaded_file', filename=file) }}" type="audio/mpeg">
+                    Trình duyệt của bạn không hỗ trợ phát nhạc.
+                </audio>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h3>Thông tin Server</h3>
+    <ul>
+        <li>CPU: {{ system_info.cpu_percent }}% sử dụng</li>
+        <li>Bộ nhớ: {{ system_info.memory_percent }}% sử dụng (Còn {{ system_info.memory_available }} GB)</li>
+        <li>Ổ đĩa: {{ system_info.disk_percent }}% sử dụng (Còn {{ system_info.disk_free }} GB)</li>
+    </ul>
+</body>
+</html>
