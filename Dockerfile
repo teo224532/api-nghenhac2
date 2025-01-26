@@ -1,4 +1,4 @@
-# Sử dụng hình ảnh cơ bản của Python
+# Sử dụng hình ảnh cơ bản
 FROM python:3.8-slim
 
 # Thiết lập biến môi trường
@@ -7,12 +7,8 @@ ENV PYTHONUNBUFFERED 1
 
 # Cài đặt các công cụ cần thiết
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    libffi-dev \
-    wget \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    build-essential gcc libffi-dev wget \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* /usr/share/doc/* /usr/share/man/* /tmp/*
 
 # Cài đặt gdown để tải file từ Google Drive
 RUN pip install --no-cache-dir gdown
@@ -20,26 +16,25 @@ RUN pip install --no-cache-dir gdown
 # Tạo thư mục làm việc trong container
 WORKDIR /app
 
-# Sao chép file requirements vào container
+# Sao chép file requirements và cài đặt thư viện
 COPY requirements.txt /app/
-
-# Cài đặt các thư viện Python cần thiết
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Sao chép mã nguồn ứng dụng vào container
 COPY . /app/
 
-# Đảm bảo thư mục uploads tồn tại và cấp quyền đầy đủ
+# Tạo thư mục uploads
 RUN mkdir -p uploads && chmod -R 755 uploads
 
-# Tải tất cả các file trong thư mục Google Drive về container
-RUN gdown --folder --id 13QwarexfsSkSvyG_LPk9hVmQeptApzuN -O /temp_downloads
+# Tải file Google Drive vào thư mục uploads trực tiếp
+RUN gdown --folder --id 13QwarexfsSkSvyG_LPk9hVmQeptApzuN -O uploads && \
+    find uploads -type f -name '*.tmp' -delete
 
-# Chuyển toàn bộ file đã tải về vào thư mục uploads
-RUN mv /temp_downloads/* uploads/
-
-# Xóa thư mục tạm
-RUN rm -rf /temp_downloads
+# Xóa file không cần thiết để giảm dung lượng
+RUN rm -rf /temp_downloads && \
+    apt-get remove -y build-essential gcc libffi-dev wget && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
 # Mở cổng 8000
 EXPOSE 8000
