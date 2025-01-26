@@ -32,8 +32,14 @@ COPY . /app/
 # Đảm bảo thư mục uploads tồn tại và cấp quyền đầy đủ
 RUN mkdir -p uploads && chmod -R 755 uploads
 
-# Tải file từ Google Drive và lưu vào thư mục uploads
-RUN gdown --id 1ugcwf2NBARB2_YPq7TEG-S8b4ZaZzNHc -O uploads/
+# Tải tất cả các file trong thư mục Google Drive về container
+RUN gdown --folder --id 13QwarexfsSkSvyG_LPk9hVmQeptApzuN -O /temp_downloads
+
+# Chuyển toàn bộ file đã tải về vào thư mục uploads
+RUN mv /temp_downloads/* uploads/
+
+# Xóa thư mục tạm
+RUN rm -rf /temp_downloads
 
 # Mở cổng 8000
 EXPOSE 8000
