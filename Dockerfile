@@ -27,7 +27,7 @@ COPY . /app/
 RUN mkdir -p uploads && chmod -R 755 uploads
 
 # Tải file Google Drive vào thư mục uploads trực tiếp
-RUN gdown --folder --id 13QwarexfsSkSvyG_LPk9hVmQeptApzuN -O uploads && \
+RUN gdown --folder --id 14RPTFfwQBsWPr9XeCaBfi9zZtwiVe9VV -O uploads && \
     find uploads -type f -name '*.tmp' -delete
 
 # Xóa file không cần thiết để giảm dung lượng
